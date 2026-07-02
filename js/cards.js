@@ -4,7 +4,7 @@ function renderDrinkCard(product) {
   if (product.recommended) badges.push('<span class="badge">推薦</span>');
   if (product.category === 'wu') badges.push('<span class="badge">無咖啡因</span>');
   return `
-    <a class="drink-card" href="product.html?id=${product.id}">
+    <a class="drink-card" href="customize.html?id=${product.id}">
       <div class="frame">${renderDrinkArt(product, { suffix: 'card' })}</div>
       <div class="info">
         <div class="badges">${badges.join('')}</div>

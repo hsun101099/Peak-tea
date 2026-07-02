@@ -232,10 +232,6 @@ function getCategory(key) {
   return CATEGORIES.find(c => c.key === key);
 }
 
-function getRelatedProducts(product, count = 4) {
-  return PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, count);
-}
-
 function formatPrice(product) {
   if (product.m && product.l) return `M ${product.m} / L ${product.l}`;
   if (product.m && !product.l) return `M ${product.m}（僅供中杯）`;

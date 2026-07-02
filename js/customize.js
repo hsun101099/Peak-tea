@@ -11,10 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const cat = getCategory(product.category);
-  document.title = `客製化 ${product.name}｜青山 PEAK TEA`;
-  const crumb = document.getElementById('crumbProduct');
-  crumb.textContent = product.name;
-  crumb.href = `product.html?id=${product.id}`;
+  document.title = `${product.name}｜青山 PEAK TEA`;
+  document.getElementById('crumbCat').innerHTML = `<a href="index.html?cat=${cat.key}">${cat.name}｜${cat.sub}</a>`;
+  document.getElementById('crumbName').textContent = product.name;
 
   const state = {
     size: product.l ? 'l' : 'm',
@@ -48,13 +47,23 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
+  const notices = [];
+  if (product.iceFixed) notices.push(`本品為鮮奶油特調，${ICE.find(i => i.key === product.iceFixed).name}固定，無法調整冰量`);
+  if (product.noZeroSugar) notices.push('鮮果製作，不提供無糖選項');
+  if (product.minSweet) notices.push('最低糖量為半糖，喝出最佳風味');
+  if (!product.m) notices.push('僅供大杯（L）');
+  if (!product.l) notices.push('僅供中杯（M）');
+  if (product.aroma) notices.push(`香氣：${product.aroma}｜口感：${product.taste}｜海拔 ${product.altitude}`);
+
   root.innerHTML = `
     <div class="customize-preview">
       <div class="frame">${renderDrinkArt(product, { suffix: 'customize' })}</div>
       <span class="cat-badge" style="color:var(--accent); font-size:.82rem; letter-spacing:.2em;">${cat.name}｜${cat.sub}</span>
       <h2>${product.name}</h2>
+      <p class="desc">${product.desc}</p>
       <div class="price-live" id="livePrice">0 元</div>
       <p class="hint" id="priceBreakdown"></p>
+      ${notices.length ? `<ul class="notice-list">${notices.map(n => `<li>${n}</li>`).join('')}</ul>` : ''}
     </div>
 
     <div class="customize-options">
