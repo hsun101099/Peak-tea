@@ -2,7 +2,6 @@ import { showToast } from './layout.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const bodyEl = document.getElementById('ordersBody');
-  let checkedOut = false;
 
   let group;
   try {
@@ -15,8 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { subscribeGroupOrder, removeFromGroupOrder, clearGroupOrder, computeStats } = group;
 
   function render(list) {
-    if (checkedOut) return;
-
     if (!list.length) {
       bodyEl.innerHTML = `
         <div class="empty-state">
@@ -27,10 +24,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    const me = getCurrentUser();
+    const admin = isAdmin();
+
     const people = [...new Set(list.map(i => i.person))];
     const groupsHtml = people.map(person => {
       const items = list.filter(item => item.person === person);
       const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
+      const canManage = admin || person === me;
       const rows = items.map(item => {
         const product = getProductById(item.productId);
         const lineTotal = item.unitPrice * item.qty;
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <h3>${item.name}</h3>
               <p>${optionText}</p>
               <p>單價 ${item.unitPrice} 元 × ${item.qty} 杯</p>
-              <button class="remove" data-id="${item.id}">移除</button>
+              ${canManage ? `<button class="remove" data-id="${item.id}">移除</button>` : ''}
             </div>
             <div class="line-price">${lineTotal} 元</div>
           </div>`;
@@ -64,8 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="cart-summary">
         <span>共 ${stats.people} 人・${stats.cups} 杯</span>
         <span class="total">總計 ${stats.total} 元</span>
-        <button class="btn btn-outline" id="clearAllBtn">清空全部</button>
-        <button class="btn btn-primary" id="checkoutBtn">送出訂單</button>
+        ${admin ? '<button class="btn btn-outline" id="clearAllBtn">清空全部</button>' : ''}
       </div>`;
 
     bodyEl.querySelectorAll('.remove').forEach(btn => {
@@ -91,24 +91,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       });
     }
-
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener('click', () => {
-        checkoutBtn.disabled = true;
-        clearGroupOrder().then(() => {
-          checkedOut = true;
-          bodyEl.innerHTML = `<div class="empty-state"><h2>感謝大家的訂購！</h2><p>訂單已經彙整完成，可以出發去買飲料囉。</p><a class="btn btn-primary" href="index.html">回到菜單</a></div>`;
-        }).catch(err => {
-          console.error(err);
-          checkoutBtn.disabled = false;
-          alert('送出失敗，請確認網路連線後再試一次。');
-        });
-      });
-    }
   }
 
-  subscribeGroupOrder(render);
+  let latestList = [];
+  subscribeGroupOrder((list) => {
+    latestList = list;
+    render(list);
+  });
+
+  // 首次訪客可能在姓名輸入完成「前」就先收到初次快照（此時 getCurrentUser() 還是空的），
+  // 送出姓名後重新渲染一次，確保「移除」按鈕的權限判斷是最新的身分。
+  document.addEventListener('peaktea:user-ready', () => render(latestList));
 
   const lastAdded = sessionStorage.getItem('peaktea_last_added');
   if (lastAdded) {

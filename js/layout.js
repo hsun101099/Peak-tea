@@ -23,6 +23,8 @@ function renderUtilityBar() {
   if (!el) return;
   const user = getCurrentUser();
 
+  const adminBtnHtml = `<button class="util-link util-btn" id="adminBtn">${isAdmin() ? '🔓 管理員' : '管理員'}</button>`;
+
   if (orderSyncFailed) {
     el.innerHTML = `
       <div class="utility-inner">
@@ -31,6 +33,7 @@ function renderUtilityBar() {
         </button>
         <div class="utility-right">
           <span class="stat-pill" style="color:#f2b8a0;">訂單同步失敗，請重新整理</span>
+          ${adminBtnHtml}
           <button class="util-link util-btn" id="switchUserBtn2">換人</button>
         </div>
       </div>`;
@@ -46,6 +49,7 @@ function renderUtilityBar() {
           <span class="stat-pill">${stats.cups} 杯</span>
           <span class="stat-pill">$${stats.total}</span>
           <a href="orders.html" class="util-link">訂單管理</a>
+          ${adminBtnHtml}
           <button class="util-link util-btn" id="switchUserBtn2">換人</button>
         </div>
       </div>`;
@@ -53,6 +57,19 @@ function renderUtilityBar() {
   const openSwitch = () => showNameModal('switch');
   document.getElementById('switchUserBtn').addEventListener('click', openSwitch);
   document.getElementById('switchUserBtn2').addEventListener('click', openSwitch);
+  document.getElementById('adminBtn').addEventListener('click', () => {
+    if (isAdmin()) {
+      if (confirm('要登出管理員模式嗎？')) {
+        lockAdmin();
+        renderUtilityBar();
+        document.dispatchEvent(new CustomEvent('peaktea:user-ready'));
+      }
+    } else if (unlockAdmin()) {
+      renderUtilityBar();
+      showToast('已解鎖管理員權限');
+      document.dispatchEvent(new CustomEvent('peaktea:user-ready'));
+    }
+  });
 }
 
 function computeStats(list) {
@@ -151,6 +168,10 @@ export function showNameModal(mode) {
       return;
     }
     setCurrentUser(name);
+    if (isSwitch && document.body.dataset.page !== 'index.html') {
+      location.href = 'index.html';
+      return;
+    }
     modal.remove();
     document.body.classList.remove('modal-open');
     renderUtilityBar();
