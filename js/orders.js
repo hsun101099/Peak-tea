@@ -43,10 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="meta">
               <h3>${item.name}</h3>
               <p>${optionText}</p>
-              <p>單價 ${item.unitPrice} 元 × ${item.qty} 杯 = <strong>${lineTotal} 元</strong></p>
+              <p>單價 ${item.unitPrice} 元 × ${item.qty} 杯</p>
               <button class="remove" data-id="${item.id}">移除</button>
             </div>
-            <div class="line-price" style="font-weight:700; color:var(--primary-dark);">${lineTotal} 元</div>
+            <div class="line-price">${lineTotal} 元</div>
           </div>`;
       }).join('');
 
