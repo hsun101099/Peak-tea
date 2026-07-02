@@ -8,16 +8,9 @@ const SITE = {
   phone: '02-2345-6789',
 };
 
-/* 茶葉分級（僅為說明用，非可單點商品） */
-const TEA_GRADES = [
-  { name: '春青', aroma: '花香', taste: '輕', alt: '800 - 1200 M', m: 30, l: 35 },
-  { name: '夏青', aroma: '木質香', taste: '重', alt: '800 - 1200 M', m: 30, l: 35 },
-  { name: '秋青', aroma: '奶香', taste: '中', alt: '1200 - 1500 M', m: 40, l: 45 },
-  { name: '冬青', aroma: '清香', taste: '輕', alt: '1300 - 1600 M', m: 55, l: 60, featured: true },
-];
-
 /* 分類 */
 const CATEGORIES = [
+  { key: 'qing', name: '青', sub: '當季茶葉', desc: '四季茶葉分級，依採摘季節呈現不同香氣與海拔風味' },
   { key: 'wu',   name: '無', sub: '無咖啡因', desc: '不含咖啡因，溫和順口的茶飲選擇' },
   { key: 'tiao', name: '調', sub: '特調茶飲', desc: '冬露系列最低糖量為半糖' },
   { key: 'liao', name: '料', sub: '加料茶飲', desc: '珍珠、奶蓋、菜燕，滿滿誠意配料' },
@@ -67,6 +60,24 @@ const ICE = [
   bits           是否畫果肉/凍類顆粒
 */
 const PRODUCTS = [
+  // 青 -----------------------------------------------------------
+  { id: 'qing-01', category: 'qing', photo: 'images/products/qing-01.jpg', name: '春青', m: 30, l: 35,
+    aroma: '花香', taste: '輕', altitude: '800 - 1200 M',
+    desc: '海拔 800-1200M 春季採摘，香氣清雅似花，口感輕盈。',
+    art: { base: '#a8b83f', base2: '#d7e08a' } },
+  { id: 'qing-02', category: 'qing', photo: 'images/products/qing-02.jpg', name: '夏青', m: 30, l: 35,
+    aroma: '木質香', taste: '重', altitude: '800 - 1200 M',
+    desc: '海拔 800-1200M 夏季採摘，木質香氣厚實，口感較重。',
+    art: { base: '#c08a4a', base2: '#ecd2a0' } },
+  { id: 'qing-03', category: 'qing', photo: 'images/products/qing-03.jpg', name: '秋青', m: 40, l: 45,
+    aroma: '奶香', taste: '中', altitude: '1200 - 1500 M',
+    desc: '海拔 1200-1500M 秋季採摘，帶自然奶香，口感適中。',
+    art: { base: '#d9b95a', base2: '#f0dfa8' } },
+  { id: 'qing-04', category: 'qing', photo: 'images/products/qing-04.jpg', name: '冬青', m: 55, l: 60, recommended: true,
+    aroma: '清香', taste: '輕', altitude: '1300 - 1600 M',
+    desc: '海拔 1300-1600M 冬季限量採摘，清香雅緻，口感輕盈回甘。',
+    art: { base: '#e8c874', base2: '#f6e4a8' } },
+
   // 無 -----------------------------------------------------------
   { id: 'wu-01', category: 'wu', photo: 'images/products/wu-01.jpg', name: '東方菊花茶', m: 45, l: 55,
     desc: '乾燥杭菊慢火沖煮，花香清雅回甘，喝來像秋日午後的一場散步。',
@@ -135,31 +146,31 @@ const PRODUCTS = [
     art: { base: '#b98a52', base2: '#e0c090', boba: '#3e2412' } },
 
   // 茶 -----------------------------------------------------------
-  { id: 'cha-01', category: 'cha', name: '綠水', m: 25, l: 30,
+  { id: 'cha-01', category: 'cha', photo: 'images/products/cha-01.jpg', name: '綠水', m: 25, l: 30,
     desc: '最純粹的一杯，清澈茶湯只留下茶葉本身的甘甜。',
     art: { base: '#b7c95a', base2: '#e2eda0' } },
-  { id: 'cha-02', category: 'cha', name: '天蟬紅茶', m: 35, l: 40, recommended: true,
+  { id: 'cha-02', category: 'cha', photo: 'images/products/cha-02.jpg', name: '天蟬紅茶', m: 35, l: 40, recommended: true,
     desc: '蟬蜜香紅茶，蜜香馥郁，茶湯紅豔透亮。',
     art: { base: '#a8502f', base2: '#d98a5a' } },
 
   // 蓋 -----------------------------------------------------------
-  { id: 'gai-01', category: 'gai', name: '蕎麥奶蓋 綠水', m: 45, l: 50,
+  { id: 'gai-01', category: 'gai', photo: 'images/products/gai-01.jpg', name: '蕎麥奶蓋 綠水', m: 45, l: 50,
     iceFixed: 'less',
     desc: '法國鮮奶油特調奶蓋，覆蓋在清爽綠水之上，鹹甜交織，僅供少冰。',
     art: { base: '#a8b83f', base2: '#d7e08a', cream: '#f5efe0' } },
-  { id: 'gai-02', category: 'gai', name: '蕎麥奶蓋 玄米茶', m: 55, l: 65, recommended: true,
+  { id: 'gai-02', category: 'gai', photo: 'images/products/gai-02.jpg', name: '蕎麥奶蓋 玄米茶', m: 55, l: 65, recommended: true,
     iceFixed: 'less',
     desc: '玄米茶香厚實，鮮奶油奶蓋綿密如雲，僅供少冰。',
     art: { base: '#cfa040', base2: '#f0dca0', cream: '#f5efe0' } },
-  { id: 'gai-03', category: 'gai', name: '海鹽奶蓋 春青', m: 50, l: 55, recommended: true,
+  { id: 'gai-03', category: 'gai', photo: 'images/products/gai-03.jpg', name: '海鹽奶蓋 春青', m: 50, l: 55, recommended: true,
     iceFixed: 'less',
     desc: '春青茶湯配上海鹽奶蓋，一口鹹一口甜，經典必喝，僅供少冰。',
     art: { base: '#d4c467', base2: '#f0e6b0', cream: '#f5efe0' } },
-  { id: 'gai-04', category: 'gai', name: '海鹽奶蓋 紅茶', m: 55, l: 60, recommended: true,
+  { id: 'gai-04', category: 'gai', photo: 'images/products/gai-04.jpg', name: '海鹽奶蓋 紅茶', m: 55, l: 60, recommended: true,
     iceFixed: 'less',
     desc: '紅茶醇厚配上綿密海鹽奶蓋，濃郁不苦澀，僅供少冰。',
     art: { base: '#a8502f', base2: '#d98a5a', cream: '#f5efe0' } },
-  { id: 'gai-05', category: 'gai', name: '海鹽奶蓋 輕蘋香茶', m: 80, l: null, recommended: true,
+  { id: 'gai-05', category: 'gai', photo: 'images/products/gai-05.jpg', name: '海鹽奶蓋 輕蘋香茶', m: 80, l: null, recommended: true,
     iceFixed: 'less',
     desc: '輕蘋果香氣清爽迷人，海鹽奶蓋更添層次，僅供中杯、少冰。',
     art: { base: '#e0708a', base2: '#f5c0cc', cream: '#f5efe0' } },

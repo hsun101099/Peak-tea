@@ -1,4 +1,4 @@
-/* 青山 Peak Tea — 共用頁首 / 頁尾 / 購物車小工具 */
+/* 青山 Peak Tea — 共用頁首 / 頁尾 / 揪團點餐工具列 */
 
 function logoMarkSVG() {
   return `<svg class="mark" viewBox="0 0 60 44" xmlns="http://www.w3.org/2000/svg">
@@ -9,7 +9,7 @@ function logoMarkSVG() {
 
 const NAV_LEFT = [
   { href: 'story.html', label: '品牌故事' },
-  { href: 'menu.html', label: '茶飲介紹' },
+  { href: 'index.html', label: '茶飲介紹' },
   { href: 'news.html', label: '品牌動態' },
 ];
 const NAV_RIGHT = [
@@ -18,11 +18,27 @@ const NAV_RIGHT = [
   { href: 'contact.html', label: '聯絡我們' },
 ];
 
-function cartCount() {
-  try {
-    const cart = JSON.parse(localStorage.getItem('peaktea_cart') || '[]');
-    return cart.reduce((sum, i) => sum + (i.qty || 1), 0);
-  } catch (e) { return 0; }
+function renderUtilityBar() {
+  const el = document.getElementById('utility-bar');
+  if (!el) return;
+  const user = getCurrentUser();
+  const stats = groupStats();
+  el.innerHTML = `
+    <div class="utility-inner">
+      <button class="user-pill" id="switchUserBtn" title="換人">
+        <span class="user-icon">&#128100;</span> ${user || '尚未設定'}
+      </button>
+      <div class="utility-right">
+        <span class="stat-pill">${stats.people} 人已點</span>
+        <span class="stat-pill">${stats.cups} 杯</span>
+        <span class="stat-pill">$${stats.total}</span>
+        <a href="orders.html" class="util-link">訂單管理</a>
+        <button class="util-link util-btn" id="switchUserBtn2">換人</button>
+      </div>
+    </div>`;
+  const openSwitch = () => showNameModal('switch');
+  document.getElementById('switchUserBtn').addEventListener('click', openSwitch);
+  document.getElementById('switchUserBtn2').addEventListener('click', openSwitch);
 }
 
 function renderHeader() {
@@ -33,6 +49,7 @@ function renderHeader() {
     `<a href="${i.href}" class="${current === i.href ? 'active' : ''}">${i.label}</a>`).join('');
 
   el.innerHTML = `
+    <div id="utility-bar" class="utility-bar"></div>
     <header class="site-header">
       <div class="header-inner">
         <button class="mobile-toggle" id="navToggle" aria-label="選單">&#9776;</button>
@@ -43,9 +60,6 @@ function renderHeader() {
         </a>
         <nav class="nav-group right" id="navRight">
           ${navHtml(NAV_RIGHT)}
-          <a href="cart.html" class="cart-link" title="購物車">
-            購物車<span class="cart-badge" id="cartBadge">${cartCount()}</span>
-          </a>
         </nav>
       </div>
     </header>`;
@@ -57,6 +71,8 @@ function renderHeader() {
     left.classList.toggle('mobile-open');
     right.classList.toggle('mobile-open');
   });
+
+  renderUtilityBar();
 }
 
 function renderFooter() {
@@ -72,14 +88,14 @@ function renderFooter() {
         <div>
           <h4>探索</h4>
           <a href="story.html">品牌故事</a>
-          <a href="menu.html">茶飲介紹</a>
+          <a href="index.html">茶飲介紹</a>
           <a href="news.html">品牌動態</a>
         </div>
         <div>
           <h4>服務</h4>
           <a href="franchise.html">加盟資訊</a>
           <a href="stores.html">門市資訊</a>
-          <a href="contact.html">聯絡我們</a>
+          <a href="orders.html">訂單管理</a>
         </div>
       </div>
       <div class="footer-bottom">&copy; ${new Date().getFullYear()} 青山 PEAK TEA. All rights reserved.</div>
@@ -99,7 +115,66 @@ function showToast(msg) {
   showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+function showNameModal(mode) {
+  let modal = document.getElementById('nameGateModal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'nameGateModal';
+  modal.className = 'modal-overlay';
+  const isSwitch = mode === 'switch';
+  modal.innerHTML = `
+    <div class="modal-card">
+      ${isSwitch ? '<button class="modal-close" id="modalCloseBtn" aria-label="關閉">&times;</button>' : ''}
+      <div class="modal-icon">&#127861;</div>
+      <h2>青山 點餐去！</h2>
+      <p class="modal-sub">先填你的名字，等等飲料來的時候才知道是誰的喔～</p>
+      <label class="modal-label" for="nameInput">你的名字</label>
+      <input class="modal-input" id="nameInput" type="text" placeholder="請輸入你的名字" value="${isSwitch ? '' : getCurrentUser()}" maxlength="12">
+      <button class="btn btn-primary btn-block" id="nameSubmitBtn">${isSwitch ? '確認換人 →' : '開始點餐 →'}</button>
+    </div>`;
+  document.body.appendChild(modal);
+  document.body.classList.add('modal-open');
+
+  const input = document.getElementById('nameInput');
+  input.focus();
+
+  function submit() {
+    const name = input.value.trim();
+    if (!name) {
+      input.classList.add('input-error');
+      input.focus();
+      return;
+    }
+    setCurrentUser(name);
+    modal.remove();
+    document.body.classList.remove('modal-open');
+    renderUtilityBar();
+    document.dispatchEvent(new CustomEvent('peaktea:user-ready'));
+  }
+
+  document.getElementById('nameSubmitBtn').addEventListener('click', submit);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+  input.addEventListener('input', () => input.classList.remove('input-error'));
+
+  if (isSwitch) {
+    document.getElementById('modalCloseBtn').addEventListener('click', () => {
+      modal.remove();
+      document.body.classList.remove('modal-open');
+    });
+  }
+}
+
+function ensureUserGate() {
+  if (!getCurrentUser()) {
+    showNameModal('gate');
+  } else {
+    document.dispatchEvent(new CustomEvent('peaktea:user-ready'));
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderHeader();
   renderFooter();
+  ensureUserGate();
 });

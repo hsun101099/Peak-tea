@@ -1,14 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const gradeRows = document.getElementById('teaGradeRows');
-  gradeRows.innerHTML = TEA_GRADES.map(g => `
-    <div class="tea-grade-row">
-      <span class="dot" style="${g.featured ? '' : 'background:var(--primary);'}"></span>
-      <strong>${g.name}</strong>
-      <span class="muted">香氣：${g.aroma}｜口感：${g.taste}</span>
-      <span class="muted">海拔 ${g.alt}</span>
-      <span class="price">M ${g.m} / L ${g.l}</span>
-    </div>`).join('');
-
   const tabsEl = document.getElementById('categoryTabs');
   const subEl = document.getElementById('categorySub');
   const gridEl = document.getElementById('drinkGrid');

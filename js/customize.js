@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('customizeRoot');
 
   if (!product) {
-    root.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><h2>找不到這項飲品</h2><a class="btn btn-primary" href="menu.html">回到菜單</a></div>`;
+    root.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><h2>找不到這項飲品</h2><a class="btn btn-primary" href="index.html">回到菜單</a></div>`;
     return;
   }
 
@@ -88,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div class="customize-actions">
-        <a href="menu.html" class="btn btn-outline">繼續選購</a>
-        <button class="btn btn-primary btn-block" id="addCartBtn">加入購物車</button>
+        <a href="index.html" class="btn btn-outline">繼續選購</a>
+        <button class="btn btn-primary btn-block" id="addCartBtn">加入訂單</button>
       </div>
     </div>
   `;
@@ -182,8 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('addCartBtn').addEventListener('click', () => {
-    const cart = JSON.parse(localStorage.getItem('peaktea_cart') || '[]');
-    cart.push({
+    const person = getCurrentUser();
+    if (!person) {
+      showNameModal('gate');
+      return;
+    }
+    addToGroupOrder({
+      person,
       productId: product.id,
       name: product.name,
       category: product.category,
@@ -195,10 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
       qty: state.qty,
       unitPrice: unitPrice(),
     });
-    localStorage.setItem('peaktea_cart', JSON.stringify(cart));
-    const badge = document.getElementById('cartBadge');
-    if (badge) badge.textContent = cartCount();
-    showToast(`已將 ${state.qty} 杯「${product.name}」加入購物車`);
+    renderUtilityBar();
+    showToast(`已為「${person}」加入 ${state.qty} 杯「${product.name}」`);
     state.qty = 1;
     renderPrice();
   });
