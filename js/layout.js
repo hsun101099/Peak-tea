@@ -1,4 +1,7 @@
-/* 青山 Peak Tea — 共用頁首 / 頁尾 / 揪團點餐工具列 */
+/* 青山 Peak Tea — 共用頁首 / 頁尾 / 揪團點餐工具列
+   注意：getCurrentUser / setCurrentUser 來自 js/user.js（純本機資料，
+   在 <script> 中先載入，不依賴 Firebase，確保網路異常時導覽列仍可運作）。
+   Firestore 相關功能一律用動態 import()，失敗時優雅降級，不影響頁首頁尾渲染。 */
 
 function logoMarkSVG() {
   return `<svg class="mark" viewBox="0 0 60 44" xmlns="http://www.w3.org/2000/svg">
@@ -18,30 +21,78 @@ const NAV_RIGHT = [
   { href: 'contact.html', label: '聯絡我們' },
 ];
 
+let latestOrderList = [];
+let orderSyncFailed = false;
+let groupApiPromise = null;
+
+function loadGroupApi() {
+  if (!groupApiPromise) {
+    groupApiPromise = import('./group.js').catch((err) => {
+      console.error('無法載入揪團訂單模組（Firebase）', err);
+      orderSyncFailed = true;
+      return null;
+    });
+  }
+  return groupApiPromise;
+}
+
 function renderUtilityBar() {
   const el = document.getElementById('utility-bar');
   if (!el) return;
   const user = getCurrentUser();
-  const stats = groupStats();
-  el.innerHTML = `
-    <div class="utility-inner">
-      <button class="user-pill" id="switchUserBtn" title="換人">
-        <span class="user-icon">&#128100;</span> ${user || '尚未設定'}
-      </button>
-      <div class="utility-right">
-        <span class="stat-pill">${stats.people} 人已點</span>
-        <span class="stat-pill">${stats.cups} 杯</span>
-        <span class="stat-pill">$${stats.total}</span>
-        <a href="orders.html" class="util-link">訂單管理</a>
-        <button class="util-link util-btn" id="switchUserBtn2">換人</button>
-      </div>
-    </div>`;
+
+  if (orderSyncFailed) {
+    el.innerHTML = `
+      <div class="utility-inner">
+        <button class="user-pill" id="switchUserBtn" title="換人">
+          <span class="user-icon">&#128100;</span> ${user || '尚未設定'}
+        </button>
+        <div class="utility-right">
+          <span class="stat-pill" style="color:#f2b8a0;">訂單同步失敗，請重新整理</span>
+          <button class="util-link util-btn" id="switchUserBtn2">換人</button>
+        </div>
+      </div>`;
+  } else {
+    const stats = computeStats(latestOrderList);
+    el.innerHTML = `
+      <div class="utility-inner">
+        <button class="user-pill" id="switchUserBtn" title="換人">
+          <span class="user-icon">&#128100;</span> ${user || '尚未設定'}
+        </button>
+        <div class="utility-right">
+          <span class="stat-pill">${stats.people} 人已點</span>
+          <span class="stat-pill">${stats.cups} 杯</span>
+          <span class="stat-pill">$${stats.total}</span>
+          <a href="orders.html" class="util-link">訂單管理</a>
+          <button class="util-link util-btn" id="switchUserBtn2">換人</button>
+        </div>
+      </div>`;
+  }
   const openSwitch = () => showNameModal('switch');
   document.getElementById('switchUserBtn').addEventListener('click', openSwitch);
   document.getElementById('switchUserBtn2').addEventListener('click', openSwitch);
 }
 
-function renderHeader() {
+function computeStats(list) {
+  const people = new Set(list.map(i => i.person)).size;
+  const cups = list.reduce((sum, i) => sum + i.qty, 0);
+  const total = list.reduce((sum, i) => sum + i.unitPrice * i.qty, 0);
+  return { people, cups, total };
+}
+
+async function startOrderSubscription() {
+  const group = await loadGroupApi();
+  if (!group) {
+    renderUtilityBar();
+    return;
+  }
+  group.subscribeGroupOrder((list) => {
+    latestOrderList = list;
+    renderUtilityBar();
+  });
+}
+
+export function renderHeader() {
   const el = document.getElementById('site-header');
   if (!el) return;
   const current = document.body.dataset.page || '';
@@ -73,9 +124,10 @@ function renderHeader() {
   });
 
   renderUtilityBar();
+  startOrderSubscription();
 }
 
-function renderFooter() {
+export function renderFooter() {
   const el = document.getElementById('site-footer');
   if (!el) return;
   el.innerHTML = `
@@ -102,7 +154,7 @@ function renderFooter() {
     </footer>`;
 }
 
-function showToast(msg) {
+export function showToast(msg) {
   let toast = document.querySelector('.toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -115,7 +167,7 @@ function showToast(msg) {
   showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
-function showNameModal(mode) {
+export function showNameModal(mode) {
   let modal = document.getElementById('nameGateModal');
   if (modal) modal.remove();
 
@@ -165,7 +217,7 @@ function showNameModal(mode) {
   }
 }
 
-function ensureUserGate() {
+export function ensureUserGate() {
   if (!getCurrentUser()) {
     showNameModal('gate');
   } else {
@@ -178,3 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderFooter();
   ensureUserGate();
 });
+
+/* 相容舊版 classic script 內嵌呼叫（例如 contact.html 的表單提交） */
+window.showToast = showToast;
+window.showNameModal = showNameModal;

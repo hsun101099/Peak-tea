@@ -1,8 +1,22 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const bodyEl = document.getElementById('ordersBody');
+import { showToast } from './layout.js';
 
-  function render() {
-    const list = getGroupOrder();
+document.addEventListener('DOMContentLoaded', async () => {
+  const bodyEl = document.getElementById('ordersBody');
+  let checkedOut = false;
+
+  let group;
+  try {
+    group = await import('./group.js');
+  } catch (err) {
+    console.error('無法載入揪團訂單模組（Firebase）', err);
+    bodyEl.innerHTML = `<div class="empty-state"><h2>無法連線到訂單系統</h2><p>請檢查網路連線後重新整理頁面再試一次。</p></div>`;
+    return;
+  }
+  const { subscribeGroupOrder, removeFromGroupOrder, clearGroupOrder, computeStats } = group;
+
+  function render(list) {
+    if (checkedOut) return;
+
     if (!list.length) {
       bodyEl.innerHTML = `
         <div class="empty-state">
@@ -15,11 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const people = [...new Set(list.map(i => i.person))];
     const groupsHtml = people.map(person => {
-      const items = list
-        .map((item, idx) => ({ item, idx }))
-        .filter(({ item }) => item.person === person);
-      const subtotal = items.reduce((sum, { item }) => sum + item.unitPrice * item.qty, 0);
-      const rows = items.map(({ item, idx }) => {
+      const items = list.filter(item => item.person === person);
+      const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
+      const rows = items.map(item => {
         const product = getProductById(item.productId);
         const lineTotal = item.unitPrice * item.qty;
         const optionText = [item.sizeLabel, `甜度：${item.sweet}`, `冰量：${item.ice}`]
@@ -27,12 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
           .join('｜');
         return `
           <div class="cart-item">
-            <div class="frame">${product ? renderDrinkArt(product, { suffix: 'order' + idx }) : ''}</div>
+            <div class="frame">${product ? renderDrinkArt(product, { suffix: 'order' + item.id }) : ''}</div>
             <div class="meta">
               <h3>${item.name}</h3>
               <p>${optionText}</p>
               <p>單價 ${item.unitPrice} 元 × ${item.qty} 杯 = <strong>${lineTotal} 元</strong></p>
-              <button class="remove" data-idx="${idx}">移除</button>
+              <button class="remove" data-id="${item.id}">移除</button>
             </div>
             <div class="line-price" style="font-weight:700; color:var(--primary-dark);">${lineTotal} 元</div>
           </div>`;
@@ -45,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
     }).join('');
 
-    const stats = groupStats();
+    const stats = computeStats(list);
 
     bodyEl.innerHTML = `
       ${groupsHtml}
@@ -58,34 +70,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bodyEl.querySelectorAll('.remove').forEach(btn => {
       btn.addEventListener('click', () => {
-        removeFromGroupOrder(Number(btn.dataset.idx));
-        renderUtilityBar();
-        render();
+        btn.disabled = true;
+        removeFromGroupOrder(btn.dataset.id).catch(err => {
+          console.error(err);
+          btn.disabled = false;
+          alert('移除失敗，請確認網路連線後再試一次。');
+        });
       });
     });
 
     const clearBtn = document.getElementById('clearAllBtn');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
-        if (confirm('確定要清空所有人的訂單嗎？')) {
-          clearGroupOrder();
-          renderUtilityBar();
-          render();
-        }
+        if (!confirm('確定要清空所有人的訂單嗎？')) return;
+        clearBtn.disabled = true;
+        clearGroupOrder().catch(err => {
+          console.error(err);
+          clearBtn.disabled = false;
+          alert('清空失敗，請確認網路連線後再試一次。');
+        });
       });
     }
 
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', () => {
-        clearGroupOrder();
-        renderUtilityBar();
-        bodyEl.innerHTML = `<div class="empty-state"><h2>感謝大家的訂購！</h2><p>訂單已經彙整完成，可以出發去買飲料囉。</p><a class="btn btn-primary" href="index.html">回到菜單</a></div>`;
+        checkoutBtn.disabled = true;
+        clearGroupOrder().then(() => {
+          checkedOut = true;
+          bodyEl.innerHTML = `<div class="empty-state"><h2>感謝大家的訂購！</h2><p>訂單已經彙整完成，可以出發去買飲料囉。</p><a class="btn btn-primary" href="index.html">回到菜單</a></div>`;
+        }).catch(err => {
+          console.error(err);
+          checkoutBtn.disabled = false;
+          alert('送出失敗，請確認網路連線後再試一次。');
+        });
       });
     }
   }
 
-  render();
+  subscribeGroupOrder(render);
 
   const lastAdded = sessionStorage.getItem('peaktea_last_added');
   if (lastAdded) {

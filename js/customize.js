@@ -1,3 +1,5 @@
+import { showNameModal } from './layout.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const product = getProductById(params.get('id'));
@@ -181,27 +183,38 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPrice();
   });
 
-  document.getElementById('addCartBtn').addEventListener('click', () => {
+  document.getElementById('addCartBtn').addEventListener('click', async (e) => {
     const person = getCurrentUser();
     if (!person) {
       showNameModal('gate');
       return;
     }
-    addToGroupOrder({
-      person,
-      productId: product.id,
-      name: product.name,
-      category: product.category,
-      size: state.size,
-      sizeLabel: state.size === 'l' ? '大杯 L' : '中杯 M',
-      sweet: SWEETNESS.find(s => s.key === state.sweet).name,
-      ice: ICE.find(i => i.key === state.ice).name,
-      addons: [...state.addons].map(k => ADDONS.find(a => a.key === k).name),
-      qty: state.qty,
-      unitPrice: unitPrice(),
-    });
-    sessionStorage.setItem('peaktea_last_added', `已為「${person}」加入 ${state.qty} 杯「${product.name}」`);
-    location.href = 'orders.html';
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.textContent = '送出中…';
+    try {
+      const { addToGroupOrder } = await import('./group.js');
+      await addToGroupOrder({
+        person,
+        productId: product.id,
+        name: product.name,
+        category: product.category,
+        size: state.size,
+        sizeLabel: state.size === 'l' ? '大杯 L' : '中杯 M',
+        sweet: SWEETNESS.find(s => s.key === state.sweet).name,
+        ice: ICE.find(i => i.key === state.ice).name,
+        addons: [...state.addons].map(k => ADDONS.find(a => a.key === k).name),
+        qty: state.qty,
+        unitPrice: unitPrice(),
+      });
+      sessionStorage.setItem('peaktea_last_added', `已為「${person}」加入 ${state.qty} 杯「${product.name}」`);
+      location.href = 'orders.html';
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+      btn.textContent = '加入訂單';
+      alert('加入訂單失敗，請確認網路連線後再試一次。');
+    }
   });
 
   renderAll();
