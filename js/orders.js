@@ -2,6 +2,7 @@ import { showToast } from './layout.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const bodyEl = document.getElementById('ordersBody');
+  const titleEl = document.querySelector('.content-page h1');
 
   let group;
   try {
@@ -25,35 +26,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const me = getCurrentUser();
-    const admin = isAdmin();
 
     const people = [...new Set(list.map(i => i.person))];
     const groupsHtml = people.map(person => {
       const items = list.filter(item => item.person === person);
       const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
-      const canManage = admin || person === me;
+      const canManage = person === me;
       const rows = items.map(item => {
-        const product = getProductById(item.productId);
         const lineTotal = item.unitPrice * item.qty;
-        const optionText = [item.sizeLabel, `甜度：${item.sweet}`, `冰量：${item.ice}`]
-          .concat(item.addons.length ? [`加料：${item.addons.join('、')}`] : [])
-          .join('｜');
+        const optionText = [item.sizeLabel, item.sweet, item.ice]
+          .concat(item.addons.length ? [item.addons.join('、')] : [])
+          .join('・');
         return `
-          <div class="cart-item">
-            <div class="frame">${product ? renderDrinkArt(product, { suffix: 'order' + item.id }) : ''}</div>
-            <div class="meta">
-              <h3>${item.name}</h3>
-              <p>${optionText}</p>
-              <p>單價 ${item.unitPrice} 元 × ${item.qty} 杯</p>
-              ${canManage ? `<button class="remove" data-id="${item.id}">移除</button>` : ''}
+          <div class="cart-row">
+            <div class="cart-row-main">
+              <span class="cart-row-name">${item.name} × ${item.qty}</span>
+              <span class="cart-row-opt">${optionText}</span>
             </div>
-            <div class="line-price">${lineTotal} 元</div>
+            <span class="cart-row-price">${lineTotal} 元</span>
+            ${canManage ? `<button class="remove" data-id="${item.id}" aria-label="移除">&times;</button>` : '<span class="remove-spacer"></span>'}
           </div>`;
       }).join('');
 
       return `
-        <div class="content-block">
-          <h2>${person} <span style="color:var(--muted); font-weight:400; font-size:.85rem;">（${items.length} 項・${subtotal} 元）</span></h2>
+        <div class="content-block person-block ${person === me ? 'is-me' : ''}">
+          <h2>${person}${person === me ? ' <span class="me-tag">你</span>' : ''} <span class="person-sub">${items.length} 項・${subtotal} 元</span></h2>
           <div class="cart-list">${rows}</div>
         </div>`;
     }).join('');
@@ -65,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="cart-summary">
         <span>共 ${stats.people} 人・${stats.cups} 杯</span>
         <span class="total">總計 ${stats.total} 元</span>
-        ${admin ? '<button class="btn btn-outline" id="clearAllBtn">清空全部</button>' : ''}
       </div>`;
 
     bodyEl.querySelectorAll('.remove').forEach(btn => {
@@ -78,19 +74,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       });
     });
+  }
 
-    const clearBtn = document.getElementById('clearAllBtn');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (!confirm('確定要清空所有人的訂單嗎？')) return;
-        clearBtn.disabled = true;
-        clearGroupOrder().catch(err => {
-          console.error(err);
-          clearBtn.disabled = false;
-          alert('清空失敗，請確認網路連線後再試一次。');
-        });
+  // 管理功能刻意不做成畫面上的按鈕，只能連點兩下標題觸發，密碼驗證後直接清空全部訂單。
+  if (titleEl) {
+    titleEl.addEventListener('dblclick', () => {
+      if (!checkAdminPassword()) return;
+      if (!confirm('確定要清空所有人的訂單嗎？此動作無法復原。')) return;
+      clearGroupOrder().catch(err => {
+        console.error(err);
+        alert('清空失敗，請確認網路連線後再試一次。');
       });
-    }
+    });
   }
 
   let latestList = [];
