@@ -89,5 +89,8 @@ function drinkArtSVG(product, opts = {}) {
 }
 
 function renderDrinkArt(product, opts = {}) {
+  if (product.photo) {
+    return `<img src="${product.photo}" alt="${product.name}" loading="lazy">`;
+  }
   return drinkArtSVG(product, opts);
 }
