@@ -200,10 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
       qty: state.qty,
       unitPrice: unitPrice(),
     });
-    renderUtilityBar();
-    showToast(`已為「${person}」加入 ${state.qty} 杯「${product.name}」`);
-    state.qty = 1;
-    renderPrice();
+    sessionStorage.setItem('peaktea_last_added', `已為「${person}」加入 ${state.qty} 杯「${product.name}」`);
+    location.href = 'orders.html';
   });
 
   renderAll();

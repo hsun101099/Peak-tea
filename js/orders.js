@@ -86,4 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   render();
+
+  const lastAdded = sessionStorage.getItem('peaktea_last_added');
+  if (lastAdded) {
+    sessionStorage.removeItem('peaktea_last_added');
+    showToast(lastAdded);
+  }
 });
