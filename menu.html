@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>茶飲介紹｜青山 PEAK TEA</title>
+<meta name="description" content="青山 PEAK TEA 完整菜單，點選飲品圖片瀏覽詳細介紹，再客製甜度冰量與加料。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="menu.html">
+
+<div id="site-header"></div>
+
+<main>
+  <section class="hero" style="padding:56px 24px 40px;">
+    <p class="eyebrow">M E N U</p>
+    <h1>茶飲介紹</h1>
+    <p>點選飲品圖片，瀏覽茶湯細節，再依喜好選擇甜度、冰量與加料。</p>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+
+      <div class="tea-grade-panel">
+        <h2>青</h2>
+        <p class="muted" style="margin-top:-8px; font-size:.85rem;">四季茶葉分級說明，各品項依所選茶葉基底計價</p>
+        <div id="teaGradeRows"></div>
+      </div>
+
+      <div class="category-tabs" id="categoryTabs"></div>
+      <p class="category-sub" id="categorySub"></p>
+
+      <div class="drink-grid" id="drinkGrid"></div>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/art.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/menu.js"></script>
+</body>
+</html>
