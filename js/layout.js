@@ -31,7 +31,6 @@ function renderUtilityBar() {
         </button>
         <div class="utility-right">
           <span class="stat-pill" style="color:#f2b8a0;">訂單同步失敗，請重新整理</span>
-          <button class="util-link util-btn" id="switchUserBtn2">換人</button>
         </div>
       </div>`;
   } else {
@@ -45,14 +44,12 @@ function renderUtilityBar() {
           <span class="stat-pill">${stats.people} 人已點</span>
           <span class="stat-pill">${stats.cups} 杯</span>
           <span class="stat-pill">$${stats.total}</span>
-          <a href="orders.html" class="util-link">訂單管理</a>
-          <button class="util-link util-btn" id="switchUserBtn2">換人</button>
+          <a href="orders.html" class="util-link">訂單</a>
         </div>
       </div>`;
   }
   const openSwitch = () => showNameModal('switch');
   document.getElementById('switchUserBtn').addEventListener('click', openSwitch);
-  document.getElementById('switchUserBtn2').addEventListener('click', openSwitch);
 }
 
 function computeStats(list) {
@@ -99,8 +96,6 @@ export function renderFooter() {
     <footer class="site-footer">
       <div class="footer-inner">
         <img src="images/brand/logo-mark.png" alt="青山 PEAK TEA" class="footer-mark">
-        <p style="color:#cfc7b3; font-size:.9rem; max-width:320px;">取自高山茶區的四季風味，以茶入景，一杯茶，一座山的高度。</p>
-        <a href="orders.html" class="util-link" style="align-self:center;">訂單管理</a>
       </div>
       <div class="footer-bottom">&copy; ${new Date().getFullYear()} 青山 PEAK TEA. All rights reserved.</div>
     </footer>`;
