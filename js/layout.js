@@ -125,7 +125,7 @@ export function showNameModal(mode) {
   modal.innerHTML = `
     <div class="modal-card">
       ${isSwitch ? '<button class="modal-close" id="modalCloseBtn" aria-label="關閉">&times;</button>' : ''}
-      <div class="modal-icon">&#127861;</div>
+      <img class="modal-icon" src="images/brand/logo-mark.png" alt="青山 PEAK TEA">
       <h2>青山 點餐去！</h2>
       <p class="modal-sub">先填你的名字，等等飲料來的時候才知道是誰的喔～</p>
       <label class="modal-label" for="nameInput">你的名字</label>

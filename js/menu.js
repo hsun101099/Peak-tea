@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderTabs() {
     tabsEl.innerHTML = CATEGORIES.map(c =>
-      `<button data-key="${c.key}" class="${c.key === activeCat ? 'active' : ''}">${c.name}｜${c.sub}</button>`
+      `<button data-key="${c.key}" class="${c.key === activeCat ? 'active' : ''}"><span class="tab-key">${c.name}</span><span class="tab-sep">｜</span><span class="tab-sub">${c.sub}</span></button>`
     ).join('');
     tabsEl.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
