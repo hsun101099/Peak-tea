@@ -3,24 +3,6 @@
    在 <script> 中先載入，不依賴 Firebase，確保網路異常時導覽列仍可運作）。
    Firestore 相關功能一律用動態 import()，失敗時優雅降級，不影響頁首頁尾渲染。 */
 
-function logoMarkSVG() {
-  return `<svg class="mark" viewBox="0 0 60 44" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="46" cy="8" r="6" fill="#c1602f"/>
-    <path d="M4 40 L22 12 L30 24 L38 8 L56 40 Z" fill="none" stroke="#2f5d50" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
-  </svg>`;
-}
-
-const NAV_LEFT = [
-  { href: 'story.html', label: '品牌故事' },
-  { href: 'index.html', label: '茶飲介紹' },
-  { href: 'news.html', label: '品牌動態' },
-];
-const NAV_RIGHT = [
-  { href: 'franchise.html', label: '加盟資訊' },
-  { href: 'stores.html', label: '門市資訊' },
-  { href: 'contact.html', label: '聯絡我們' },
-];
-
 let latestOrderList = [];
 let orderSyncFailed = false;
 let groupApiPromise = null;
@@ -95,33 +77,16 @@ async function startOrderSubscription() {
 export function renderHeader() {
   const el = document.getElementById('site-header');
   if (!el) return;
-  const current = document.body.dataset.page || '';
-  const navHtml = (items) => items.map(i =>
-    `<a href="${i.href}" class="${current === i.href ? 'active' : ''}">${i.label}</a>`).join('');
 
   el.innerHTML = `
     <div id="utility-bar" class="utility-bar"></div>
     <header class="site-header">
       <div class="header-inner">
-        <button class="mobile-toggle" id="navToggle" aria-label="選單">&#9776;</button>
-        <nav class="nav-group left" id="navLeft">${navHtml(NAV_LEFT)}</nav>
         <a href="index.html" class="brand-logo">
-          ${logoMarkSVG()}
-          <span class="word">青&nbsp;山</span>
+          <img src="images/brand/logo-lockup.png" alt="青山 PEAK TEA" class="logo-lockup">
         </a>
-        <nav class="nav-group right" id="navRight">
-          ${navHtml(NAV_RIGHT)}
-        </nav>
       </div>
     </header>`;
-
-  const toggle = document.getElementById('navToggle');
-  const left = document.getElementById('navLeft');
-  const right = document.getElementById('navRight');
-  toggle.addEventListener('click', () => {
-    left.classList.toggle('mobile-open');
-    right.classList.toggle('mobile-open');
-  });
 
   renderUtilityBar();
   startOrderSubscription();
@@ -133,22 +98,9 @@ export function renderFooter() {
   el.innerHTML = `
     <footer class="site-footer">
       <div class="footer-inner">
-        <div>
-          <h4>青山 PEAK TEA</h4>
-          <p style="color:#cfc7b3; font-size:.9rem; max-width:280px;">取自高山茶區的四季風味，以茶入景，一杯茶，一座山的高度。</p>
-        </div>
-        <div>
-          <h4>探索</h4>
-          <a href="story.html">品牌故事</a>
-          <a href="index.html">茶飲介紹</a>
-          <a href="news.html">品牌動態</a>
-        </div>
-        <div>
-          <h4>服務</h4>
-          <a href="franchise.html">加盟資訊</a>
-          <a href="stores.html">門市資訊</a>
-          <a href="orders.html">訂單管理</a>
-        </div>
+        <img src="images/brand/logo-mark.png" alt="青山 PEAK TEA" class="footer-mark">
+        <p style="color:#cfc7b3; font-size:.9rem; max-width:320px;">取自高山茶區的四季風味，以茶入景，一杯茶，一座山的高度。</p>
+        <a href="orders.html" class="util-link" style="align-self:center;">訂單管理</a>
       </div>
       <div class="footer-bottom">&copy; ${new Date().getFullYear()} 青山 PEAK TEA. All rights reserved.</div>
     </footer>`;
@@ -231,6 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ensureUserGate();
 });
 
-/* 相容舊版 classic script 內嵌呼叫（例如 contact.html 的表單提交） */
+/* 相容舊版 classic script 內嵌呼叫 */
 window.showToast = showToast;
 window.showNameModal = showNameModal;
